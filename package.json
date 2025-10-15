@@ -1,16 +1,14 @@
 {
   "name": "elitemgtracking",
-  "type": "module",
   "scripts": {
-    "dev": "node src/index.js",
+    "dev": "node dist/index.js",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:init": "node scripts/init-db.js"
+    "db:init": "node dist/scripts/init-db.js"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "hono": "^4.9.11",
-    "@hono/node-server": "^1.8.2",
+    "hono": "^4.6.0",
     "better-sqlite3": "^9.1.1"
   },
   "devDependencies": {

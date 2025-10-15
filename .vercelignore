@@ -1,7 +1,10 @@
 scripts/
+src/
 *.db
 node_modules/
 .env
 dist/
 README.md
 tsconfig.json
+*.ts
+!api/*.ts
