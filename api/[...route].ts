@@ -1,42 +1,23 @@
 import { Hono } from 'hono'
-import { authMiddleware } from '../src/middleware/authmiddleware'
-import authRoute from '../src/routes/authRoutes'
-import userRoute from '../src/routes/userRoutes'
-import { login, changePassword } from '../src/controller/authController'
-import { getUserByTrackId } from '../src/controller/userController'
 import { handle } from 'hono/vercel'
-import 'dotenv/config'
 
-const app = new Hono()
+const app = new Hono().basePath('/api')
 
-// Initialize database on first request in production
-let dbInitialized = false
-
-app.use('*', async (c, next) => {
-  if (!dbInitialized && process.env.NODE_ENV === 'production') {
-    try {
-      // Import and run database initialization
-      const { initializeDatabase } = await import('../scripts/init-production.js')
-      await initializeDatabase()
-      dbInitialized = true
-      console.log('Database initialized for production')
-    } catch (error) {
-      console.error('Failed to initialize database:', error)
-    }
-  }
-  await next()
+// Simple test route
+app.get('/test', (c) => {
+  return c.json({ message: 'API is working!' })
 })
 
-// Public API routes (no auth required)
-app.get('/users/track/:trackId', getUserByTrackId)
+// Basic error handling
+app.onError((err, c) => {
+  console.error('API Error:', err)
+  return c.json({ error: 'Internal Server Error', message: err.message }, 500)
+})
 
-// Auth routes
-app.post('/auth/login', login) // Public login
-app.put('/auth/change-password', authMiddleware, changePassword) // Protected change password
-
-// Protected API routes (auth required)
-app.use('/users/*', authMiddleware)
-app.route('/users', userRoute)
+// 404 handler
+app.notFound((c) => {
+  return c.json({ error: 'Not Found' }, 404)
+})
 
 // For Vercel
 export const GET = handle(app)

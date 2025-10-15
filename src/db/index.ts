@@ -1,14 +1,9 @@
 import Database, { type Database as DatabaseType } from 'better-sqlite3'
 import { User, Track, UserSettings, Admin } from '../types/database'
 import path from 'path'
-import { fileURLToPath } from 'url'
 
-// Get the directory name for ES modules
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// Initialize database connection
-const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : path.join(__dirname, '../../elite.db')
+// Initialize database connection - always use in-memory for serverless
+const dbPath = ':memory:'
 const db = new Database(dbPath)
 
 // Enable foreign keys
@@ -49,14 +44,12 @@ export class DbClient {
   private db: DatabaseType
 
   constructor() {
-    const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : path.join(__dirname, '../../elite.db')
-    this.db = new Database(dbPath)
+    // Always use in-memory database for serverless
+    this.db = new Database(':memory:')
     this.db.pragma('foreign_keys = ON')
     
-    // Initialize tables when using in-memory database (production)
-    if (process.env.NODE_ENV === 'production') {
-      this.initializeTables()
-    }
+    // Always initialize tables for in-memory database
+    this.initializeTables()
   }
 
   private initializeTables(): void {
