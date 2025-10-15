@@ -1,4 +1,4 @@
-import { Database } from 'bun:sqlite'
+import Database from 'better-sqlite3'
 
 const db = new Database('elite.db')
 
@@ -7,7 +7,7 @@ console.log('Starting database migration...')
 try {
   // Check if new columns exist by trying to select them
   try {
-    db.query('SELECT track_id FROM users LIMIT 1').get()
+    db.prepare('SELECT track_id FROM users LIMIT 1').get()
     console.log('New columns already exist.')
   } catch (error) {
     console.log('Adding new columns to users table...')
@@ -24,7 +24,7 @@ try {
 
     for (const migration of migrations) {
       try {
-        db.run(migration)
+        db.exec(migration)
         console.log(`✓ ${migration}`)
       } catch (err) {
         console.log(`⚠ Skipping: ${migration} (might already exist)`)
@@ -33,19 +33,19 @@ try {
 
     // Generate track_id for existing users
     console.log('Generating track IDs for existing users...')
-    const users = db.query('SELECT id FROM users WHERE track_id IS NULL').all()
+    const users = db.prepare('SELECT id FROM users WHERE track_id IS NULL').all()
     
     for (const user of users as any[]) {
       const timestamp = Date.now().toString(36)
       const randomStr = Math.random().toString(36).substring(2, 8)
       const trackId = `TRK-${timestamp}-${randomStr}`.toUpperCase()
       
-      db.run('UPDATE users SET track_id = ? WHERE id = ?', [trackId, user.id])
+      db.prepare('UPDATE users SET track_id = ? WHERE id = ?').run(trackId, user.id)
       console.log(`Generated track ID ${trackId} for user ${user.id}`)
     }
 
     // Update money_due to match amount for existing users
-    db.run('UPDATE users SET money_due = amount WHERE money_due = ""')
+    db.prepare('UPDATE users SET money_due = amount WHERE money_due = ""').run()
     console.log('Updated money_due field for existing users')
   }
 

@@ -2,10 +2,10 @@
   "name": "elitemgtracking",
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "dev": "node src/index.js",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:init": "bun run scripts/init-db.ts"
+    "db:init": "node scripts/init-db.js"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
@@ -14,7 +14,6 @@
     "better-sqlite3": "^9.1.1"
   },
   "devDependencies": {
-    "@types/bun": "latest",
     "@types/better-sqlite3": "^7.6.8",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"

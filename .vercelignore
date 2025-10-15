@@ -1,0 +1,7 @@
+scripts/
+*.db
+node_modules/
+.env
+dist/
+README.md
+tsconfig.json

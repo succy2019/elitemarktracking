@@ -6,10 +6,10 @@ console.log('Initializing database...')
 console.log('Database initialized successfully!')
 
 // Optional: Add some test data
-async function addTestData() {
+function addTestData() {
   try {
     // Create a test user with the new interface
-    const userId = await dbClient.createUser({
+    const userId = dbClient.createUser({
       email: 'test@example.com',
       name: 'Test User',
       amount: '₦50,000.00',
@@ -27,7 +27,7 @@ async function addTestData() {
     console.log(`Test user created with ID: ${userId}`)
     
     // Get the created user to show the track ID
-    const createdUser = await dbClient.getUserById(userId)
+    const createdUser = dbClient.getUserById(userId)
     if (createdUser) {
       console.log(`Track ID: ${createdUser.track_id}`)
       console.log(`Tracking URL: http://localhost:3000/track.html/${createdUser.track_id}`)
