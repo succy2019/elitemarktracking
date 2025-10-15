@@ -1,6 +1,7 @@
 import { Context } from 'hono'
 import { sign } from 'hono/jwt'
 import { dbClient } from '../db'
+import { createHash, pbkdf2Sync, randomBytes } from 'crypto'
 
 export const login = async (c: Context) => {
     try {
@@ -18,7 +19,7 @@ export const login = async (c: Context) => {
         }
 
         // Compare hashed password
-        const passwordMatch = await Bun.password.verify(password, admin.password)
+        const passwordMatch = verifyPassword(password, admin.password)
         if (!passwordMatch) {
             return c.json({ message: 'Invalid email or password' }, 401)
         }
@@ -30,8 +31,8 @@ export const login = async (c: Context) => {
             role: 'admin'
         }
 
-        // Sign token with Bun.env.JWT_SECRET
-        const token = await sign(payload, Bun.env.JWT_SECRET as string)
+        // Sign token with process.env.JWT_SECRET
+        const token = await sign(payload, process.env.JWT_SECRET as string)
 
         return c.json({
             message: 'Login successful',
@@ -45,8 +46,17 @@ export const login = async (c: Context) => {
 }
 
 // Function to hash password before storing
-export const hashPassword = async (password: string): Promise<string> => {
-    return await Bun.password.hash(password)
+export const hashPassword = (password: string): string => {
+    const salt = randomBytes(32).toString('hex')
+    const hash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
+    return `${salt}:${hash}`
+}
+
+// Function to verify password
+const verifyPassword = (password: string, hashedPassword: string): boolean => {
+    const [salt, hash] = hashedPassword.split(':')
+    const verifyHash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
+    return hash === verifyHash
 }
 
 export const changePassword = async (c: Context) => {
@@ -75,13 +85,13 @@ export const changePassword = async (c: Context) => {
         }
 
         // Verify current password
-        const currentPasswordMatch = await Bun.password.verify(currentPassword, admin.password)
+        const currentPasswordMatch = verifyPassword(currentPassword, admin.password)
         if (!currentPasswordMatch) {
             return c.json({ message: 'Current password is incorrect' }, 401)
         }
 
         // Hash new password
-        const hashedNewPassword = await hashPassword(newPassword)
+        const hashedNewPassword = hashPassword(newPassword)
 
         // Update password in database
         await dbClient.updateAdminPassword(admin.email, hashedNewPassword)

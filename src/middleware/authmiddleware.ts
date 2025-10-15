@@ -15,7 +15,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
   }
 
   try {
-    const decoded = await verify(token, Bun.env.JWT_SECRET as string)
+    const decoded = await verify(token, process.env.JWT_SECRET as string)
     c.set('user', decoded)
     c.set('admin', decoded) // Also set as admin for consistency
     await next()
